@@ -13,8 +13,9 @@ const postCollection = mongoose.Schema({
     type: String,
   },
   likes: {
-    type: Number,
-    default: 0
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'User',
+    default: []
   },
   replies: [
     {
@@ -26,6 +27,12 @@ const postCollection = mongoose.Schema({
       text: {
         type: String,
         required: true
+      },
+      profilePicture: {
+        type: String
+      },
+      username: {
+        type: String
       }
     }
   ]

@@ -84,7 +84,7 @@ const follow = async (req, res) => {
     }
 
     if (!otherUser || !user) {
-      return res.status(400).json({ message: "User not found." })
+      return res.status(404).json({ message: "User not found." })
     }
 
     const isFollowing = user.following.includes(id)
@@ -114,7 +114,7 @@ const update = async (req, res) => {
 
     let user = await User.findById(uid)
     if (!user) {
-      return res.status(400).json({ message: "User not found." })
+      return res.status(404).json({ message: "User not found." })
     }
 
     if (req.params.id !== uid.toString()) {
@@ -148,7 +148,7 @@ const getProfile = async (req, res) => {
   try {
     const user = await User.findOne({username}).select("-password").select("-updatedAt")
     if (!user) {
-      return res.status(400).json({ message: "User not found." })
+      return res.status(404).json({ message: "User not found." })
     }
 
     res.status(200).json(user)
