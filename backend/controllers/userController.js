@@ -1,6 +1,7 @@
 import User from '../models/userModel.js'
 import bcrypt from "bcryptjs";
 import setCookie from '../utils/helpers/setCookie.js';
+import { v2 as cloudinary } from 'cloudinary'
 
 const signUp = async (req, res) => {
   try {
@@ -29,7 +30,9 @@ const signUp = async (req, res) => {
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        username: newUser.username
+        username: newUser.username,
+        bio: newUser.bio,
+        profilePicture: newUser.profilePicture
       })
     } else {
       res.status(400).json({ error: "Invalid user data." })
@@ -56,7 +59,9 @@ const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      username: user.username
+      username: user.username,
+      bio: user.bio,
+      profilePicture: user.profilePicture
     })
   } catch (err) {
     res.status(500).json({ error: err.message })
@@ -109,7 +114,8 @@ const follow = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    const { name, email, username, password, profilePicture, bio } = req.body
+    const { name, email, username, password, bio } = req.body
+    let { profilePicture } = req.body
     const uid  = req.user._id
 
     let user = await User.findById(uid)
@@ -127,6 +133,14 @@ const update = async (req, res) => {
       user.password = hashedPassword
     }
 
+    if (profilePicture) {
+      if (user.profilePicture) {
+        await cloudinary.uploader.destroy(user.profilePicture.split("/").pop().split(".")[0])
+      }
+      const uploadedResponse = await cloudinary.uploader.upload(profilePicture)
+      profilePicture = uploadedResponse.secure_url
+    }
+
     user.name = name || user.name
     user.email = email || user.email
     user.username = username || user.username
@@ -134,10 +148,9 @@ const update = async (req, res) => {
     user.bio = bio || user.bio
 
     user = await user.save()
-    res.status(200).json({
-      message: "Profile updated successfully.",
-      user
-    })
+
+    user.password = null
+    res.status(200).json(user)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
