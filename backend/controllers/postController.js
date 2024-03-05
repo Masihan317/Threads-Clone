@@ -5,22 +5,22 @@ const create = async (req, res) => {
   try {
     const { postedBy, text, img } = req.body
     if (!postedBy || !text) {
-      res.status(400).json({ message: "Please fill in all of the fields." })
+      res.status(400).json({ error: "Please fill in all of the fields." })
     }
 
     const user = await User.findById(postedBy)
     if (!user) {
-      return res.status(404).json({ message: "User not found." })
+      return res.status(404).json({ error: "User not found." })
     }
 
     if (user._id.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: "Unauthorized." })
+      return res.status(401).json({ error: "Unauthorized." })
     }
 
     const maxLength = 500
     if (text.length > maxLength) {
       return res.status(400).json({
-        message: `Text must be less than ${maxLength} characters.`
+        error: `Text must be less than ${maxLength} characters.`
       })
     }
 
@@ -36,7 +36,7 @@ const create = async (req, res) => {
       newPost
     })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
@@ -46,12 +46,12 @@ const getPost = async (req, res) => {
     const post = await Post.findById(id)
 
     if (!post) {
-      return res.status(404).json({ message: "Post not found." })
+      return res.status(404).json({ error: "Post not found." })
     }
 
     res.status(200).json({ post })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
@@ -61,17 +61,17 @@ const deletePost = async (req, res) => {
     const post = await Post.findById(id)
 
     if (!post) {
-      return res.status(404).json({ message: "Post not found." })
+      return res.status(404).json({ error: "Post not found." })
     }
 
     if (post.postedBy.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: "Unauthorized." })
+      return res.status(401).json({ error: "Unauthorized." })
     }
 
     await Post.findByIdAndDelete(req.params.id)
     res.status(200).json({ message: "Post deleted successfully." })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
@@ -83,7 +83,7 @@ const like = async (req, res) => {
     const post = await Post.findById(pid)
 
     if (!post) {
-      return res.status(404).json({ message: "Post not found." })
+      return res.status(404).json({ error: "Post not found." })
     }
 
     const isLiked = post.likes.includes(uid)
@@ -100,7 +100,7 @@ const like = async (req, res) => {
       })
     }
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
@@ -113,13 +113,13 @@ const reply = async (req, res) => {
     const username = req.user.username
 
     if (!text) {
-      res.status(400).json({ message: "Post body is required." })
+      res.status(400).json({ error: "Post body is required." })
     }
 
     const post = await Post.findById(pid)
 
     if (!post) {
-      return res.status(404).json({ message: "Post not found." })
+      return res.status(404).json({ error: "Post not found." })
     }
 
     const reply = {
@@ -133,7 +133,7 @@ const reply = async (req, res) => {
 
     res.status(200).json({ message: "Reply added successfully.", reply })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
@@ -143,7 +143,7 @@ const getFeedPosts = async (req, res) => {
     const user = await User.findById(uid)
 
     if (!user) {
-      return res.status(404).json({ message: "User not found." })
+      return res.status(404).json({ error: "User not found." })
     }
 
     const following = user.following
@@ -151,7 +151,7 @@ const getFeedPosts = async (req, res) => {
 
     res.status(200).json({ feedPosts })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ error: err.message })
   }
 }
 
