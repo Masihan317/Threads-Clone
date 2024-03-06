@@ -5,10 +5,14 @@ import Actions from './Actions'
 import { useEffect, useState } from 'react'
 import useShowToast from '../hooks/useShowToast'
 import { formatDistanceToNow } from 'date-fns'
+import { DeleteIcon } from '@chakra-ui/icons'
+import { useRecoilValue } from 'recoil'
+import userAtom from '../atoms/userAtom'
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null)
   const showToast = useShowToast()
+  const currentUser = useRecoilValue(userAtom)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -31,6 +35,30 @@ const Post = ({ post, postedBy }) => {
     getUser()
   }, [postedBy, showToast])
 
+  const handleDeletePost = async (e) => {
+    try {
+      e.preventDefault()
+      if (!window.confirm("Are you sure you want to delete this post?")) {
+        return
+      }
+
+      const res = await fetch(`/api/posts/${post._id}`, {
+        method: "DELETE",
+      })
+
+      const data = res.json()
+
+      if (data.error) {
+        showToast("Error", data.error, "error")
+        return
+      }
+
+      showToast("Success", "Post deleted successfully.", "success")
+    } catch (err) {
+      showToast("Error", err, "error")
+    }
+  }
+
   return (
     <Link to={`/${user?.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
@@ -38,7 +66,7 @@ const Post = ({ post, postedBy }) => {
           <Avatar size="md" name={user?.name} src={user?.profilePicture}
             onClick={(e) => {
               e.preventDefault()
-              navigate(`${user.username}`)
+              navigate(`post/${user.username}`)
             }}
           />
           <Box w="1px" h="full" bg={"gray.light"} my={2}></Box>
@@ -85,13 +113,16 @@ const Post = ({ post, postedBy }) => {
               <Text fontSize="sm" fontWeight={"bold"}
                 onClick={(e) => {
                   e.preventDefault()
-                  navigate(`${user.username}`)
+                  navigate(`post/${post._id}`)
                 }}
               >{user?.username}</Text>
               <Image src="/verified.png" w={4} h={4} ml={1} />
             </Flex>
             <Flex gap={4} alignItems="center">
-              <Text fontSize="sm" textAlign="right" w={36} color={"gray.light"}>{formatDistanceToNow(new Date(post.createdAt))} ago</Text>
+              <Text fontSize="xs" textAlign="right" w={36} color={"gray.light"}>{formatDistanceToNow(new Date(post.createdAt))} ago</Text>
+              {currentUser?._id === user?._id && (
+                <DeleteIcon size={20} onClick={handleDeletePost} />
+              )}
               <BsThreeDots onClick={(e) => e.preventDefault()} />
             </Flex>
           </Flex>

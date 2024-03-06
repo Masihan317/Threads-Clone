@@ -1,35 +1,38 @@
 import { useState, useEffect } from "react"
 import UserHeader from "../components/UserHeader"
-import UserPost from "../components/UserPost"
 import { useParams } from "react-router-dom"
 import useShowToast from "../hooks/useShowToast"
-import { Flex, Spinner } from "@chakra-ui/react"
+import { Flex, Spinner, Text } from "@chakra-ui/react"
+import Post from "../components/Post"
+import useGetUserProfile from '../hooks/useGetUserProfile'
 
 const UserPage = () => {
-  const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, isLoading } = useGetUserProfile()
+  const [posts, setPosts] = useState([])
+  const [isFetching, setIsFetching] = useState(true)
   const { username } = useParams()
   const showToast = useShowToast()
 
   useEffect(() => {
-    const getUser = async() => {
+    const getPosts = async () => {
       try {
-        const res = await fetch(`/api/users/profile/${username}`)
+        const res = await fetch(`/api/posts/user/${username}`)
         const data = await res.json()
 
         if (data.error) {
           showToast("Error", data.error, "error")
           return
         }
-        setUser(data)
+        setPosts(data)
       } catch (err) {
         showToast("Error", err, "error")
+        setPosts([])
       } finally {
-        setIsLoading(false)
+        setIsFetching(false)
       }
     }
 
-    getUser()
+    getPosts()
   }, [username, showToast])
 
   if (!user && isLoading) {
@@ -51,10 +54,15 @@ const UserPage = () => {
   return (
     <>
       <UserHeader user={user} />
-      <UserPost likes={1200} replies={123} image="/post1.png" title={"Let's talk about threads."} />
-      <UserPost likes={7800} replies={623} image="/post2.png" title={"Lorem Ipsum."} />
-      <UserPost likes={900} replies={423} image="/post3.png" title={"Test Test."} />
-      <UserPost likes={9} replies={7} image="/post4.png" title={"Tutorial."} />
+      {!isFetching && posts.length === 0 && <Text mt={4}>User has no posts.</Text>}
+      {isFetching && (
+        <Flex justifyContent={"center"}>
+          <Spinner my={12} size={"xl"} />
+        </Flex>
+      )}
+      {posts.map((post) => (
+        <Post key={post._id} post={post} postedBy={post.postedBy} />
+      ))}
     </>
   )
 }

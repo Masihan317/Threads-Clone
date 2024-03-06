@@ -57,7 +57,7 @@ const getPost = async (req, res) => {
       return res.status(404).json({ error: "Post not found." })
     }
 
-    res.status(200).json({ post })
+    res.status(200).json(post)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -74,6 +74,11 @@ const deletePost = async (req, res) => {
 
     if (post.postedBy.toString() !== req.user._id.toString()) {
       return res.status(401).json({ error: "Unauthorized." })
+    }
+
+    if (post.img) {
+      const imageId = post.img.split("/").pop().split(".")[0]
+      await cloudinary.uploader.destroy(imageId)
     }
 
     await Post.findByIdAndDelete(req.params.id)
@@ -163,4 +168,19 @@ const getFeedPosts = async (req, res) => {
   }
 }
 
-export { create, getPost, deletePost, like, reply, getFeedPosts }
+const getUserPosts = async (req, res) => {
+  const { username } = req.params
+  try {
+    const user = await User.findOne({ username })
+    if (!user) {
+      return res.status(404).json({ error: "User not found." })
+    }
+
+    const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 })
+    res.status(200).json(posts)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+export { create, getPost, deletePost, like, reply, getFeedPosts, getUserPosts }
