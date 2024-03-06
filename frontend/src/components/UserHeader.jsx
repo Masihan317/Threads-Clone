@@ -11,6 +11,7 @@ const UserHeader = ({ user }) => {
   const showToast = useShowToast()
   const currentUser = useRecoilValue(userAtom)
   const [isFollowing, setIsFollowing] = useState(user.followers.includes(currentUser._id))
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const copyLink = async () => {
     const url = window.location.href
@@ -19,6 +20,17 @@ const UserHeader = ({ user }) => {
   }
 
   const handleFollow = async () => {
+    if (!currentUser) {
+      showToast("Error", "Please log in to follow/unfollow users.", "error")
+      return
+    }
+
+    if (isUpdating) {
+      return
+    }
+
+    setIsUpdating(true)
+
     try {
       const res = await fetch(`/api/users/follow/${user._id}`, {
         method: "POST",
@@ -43,6 +55,8 @@ const UserHeader = ({ user }) => {
       setIsFollowing(!isFollowing)
     } catch {
       showToast("Error", err, "error")
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -73,7 +87,7 @@ const UserHeader = ({ user }) => {
         </Link>
       )}
       {currentUser._id !== user._id && (
-        <Button size={"sm"} onClick={handleFollow}>{isFollowing ? "Unfollow" : "Follow"}</Button>
+        <Button size={"sm"} onClick={handleFollow} isLoading={isUpdating}>{isFollowing ? "Unfollow" : "Follow"}</Button>
       )}
       <Flex w="full" justifyContent="space-between">
         <Flex gap={2} alignItems="center">

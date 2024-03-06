@@ -7,6 +7,7 @@ import usePreviewImage from "../hooks/usePreviewImage";
 
 export default function UpdateProfilePage() {
   const [user, setUser] = useRecoilState(userAtom)
+	const [isUpdating, setIsUpdating] = useState(false)
   const fileRef = useRef(null)
   const { imageURL, handleImageChange } = usePreviewImage()
   const showToast = useShowToast()
@@ -21,6 +22,11 @@ export default function UpdateProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+		
+		if (isUpdating) {
+			return
+		}
+		setIsUpdating(true)
 
     try {
       const res = await fetch(`/api/users/update/${user._id}`, {
@@ -42,7 +48,9 @@ export default function UpdateProfilePage() {
       localStorage.setItem("user-threads", JSON.stringify(data))
     } catch (err) {
       showToast("Error", err, "error")
-    }
+    } finally {
+			setIsUpdating(false)
+		}
   }
 
 	return (
@@ -87,7 +95,7 @@ export default function UpdateProfilePage() {
 						<Button bg={"red.400"} color={"white"} w='full' _hover={{ bg: "red.500" }}>
 							Cancel
 						</Button>
-						<Button bg={"blue.400"} color={"white"} w='full' _hover={{ bg: "blue.500" }} type='submit'>
+						<Button bg={"blue.400"} color={"white"} w='full' _hover={{ bg: "blue.500" }} type='submit' isLoading={isUpdating}>
 							Submit
 						</Button>
 					</Stack>

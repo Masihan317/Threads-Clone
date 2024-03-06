@@ -6,6 +6,7 @@ import AuthPage from "./pages/AuthPage"
 import HomePage from "./pages/HomePage"
 import UpdateProfilePage from "./pages/UpdateProfilePage"
 import Header from "./components/Header"
+import CreatePost from "./components/CreatePost"
 import { useRecoilValue } from "recoil"
 import userAtom from "./atoms/userAtom"
 import LogOutButton from "./components/LogOutButton"
@@ -24,6 +25,7 @@ function App() {
         <Route path="/:username/post/:pid" element={<PostPage />} />
       </Routes>
       {user && <LogOutButton />}
+      {user && <CreatePost />}
     </Container>
   )
 }

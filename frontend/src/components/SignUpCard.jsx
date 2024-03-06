@@ -8,6 +8,7 @@ import userAtom from '../atoms/userAtom'
 
 const SignUpCard = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const setAuthScreenState = useSetRecoilState(authScreenAtom)
   const setUser = useSetRecoilState(userAtom)
   const showToast = useShowToast()
@@ -20,6 +21,8 @@ const SignUpCard = () => {
   })
 
   const handleSignup = async () => {
+    setIsLoading(true)
+
     try {
       const res = await fetch("/api/users/signup", {
         method: "POST",
@@ -40,6 +43,8 @@ const SignUpCard = () => {
       setUser(data)
     } catch (err) {
       showToast("Error", err, "error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -83,12 +88,13 @@ const SignUpCard = () => {
               </InputGroup>
             </FormControl>
             <Stack spacing={10} pt={2}>
-              <Button loadingText={"Submitting"}
+              <Button loadingText={"Signing up"}
                 size={"lg"}
                 bg={useColorModeValue("gray.600", "gray.700")}
                 color={"white"}
                 _hover={{ bg: useColorModeValue("gray.700", "gray.800") }}
                 onClick={handleSignup}
+                isLoading={isLoading}
               >
                 Sign Up
               </Button>

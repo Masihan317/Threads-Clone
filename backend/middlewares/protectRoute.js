@@ -13,7 +13,7 @@ const protectRoute = async (req, res, next) => {
     req.user = user
 
     next()
-  } catch {
+  } catch (err) {
     res.status(500).json({ message: err.message })
   }
 }
