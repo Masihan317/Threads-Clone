@@ -1,13 +1,14 @@
 import { Box, Flex, Text, Modal, ModalOverlay, ModalContent, ModalCloseButton, ModalBody, FormControl, Input, ModalFooter, useDisclosure, Button, ModalHeader } from "@chakra-ui/react";
 import { useState } from "react";
 import useShowToast from "../hooks/useShowToast";
-import { useRecoilValue } from 'recoil'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import userAtom from '../atoms/userAtom'
+import postsAtom from "../atoms/postsAtom";
 
-const Actions = ({ post: post_ }) => {
+const Actions = ({ post }) => {
 	const user = useRecoilValue(userAtom)
-  const [isLiked, setIsLiked] = useState(post_?.likes.includes(user?._id));
-	const [post, setPost] = useState(post_)
+  const [isLiked, setIsLiked] = useState(post?.likes.includes(user?._id));
+	const [posts, setPosts] = useRecoilState(postsAtom)
 	const [isLiking, setIsLiking] = useState(false)
 	const [isReplying, setIsReplying] = useState(false)
 	const [reply, setReply] = useState("")
@@ -38,9 +39,21 @@ const Actions = ({ post: post_ }) => {
 			}
 
 			if (!isLiked) {
-				setPost({...post, likes: [...post.likes, user._id]})
+				const updatedPosts = posts.map((p) => {
+          if (p._id === post._id) {
+            return {...p, likes: [...p.likes, user._id]}
+          }
+          return p
+        })
+        setPosts(updatedPosts)
 			} else {
-				setPost({...post, likes: post.likes.filter(id => id != user._id)})
+        const updatedPosts = posts.map((p) => {
+          if (p._id === post._id) {
+            return {...p, likes: p.likes.filter((id) => id !== user._id)}
+          }
+          return p
+        })
+        setPosts(updatedPosts)
 			}
 			setIsLiked(!isLiked)
 		} catch (err) {
@@ -74,8 +87,14 @@ const Actions = ({ post: post_ }) => {
 				return
 			}
 
-			setPost({...post, replies: [...post.replies, data.reply]})
-			showToast("Success", data.message, "success")
+      const updatedPosts = posts.map((p) => {
+        if (p._id === post._id) {
+          return {...p, replies: [...p.replies, data]}
+        }
+        return p
+      })
+      setPosts(updatedPosts)
+			showToast("Success", "Reply posted successfully.", "success")
 			onClose()
 			setReply("")
 		} catch (err) {

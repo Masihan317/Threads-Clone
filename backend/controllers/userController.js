@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import setCookie from '../utils/helpers/setCookie.js';
 import { v2 as cloudinary } from 'cloudinary'
 import mongoose from 'mongoose'
+import Post from '../models/postModel.js';
 
 const signUp = async (req, res) => {
   try {
@@ -149,6 +150,23 @@ const update = async (req, res) => {
     user.bio = bio || user.bio
 
     user = await user.save()
+
+    await Post.updateMany(
+      {
+        "replies.uid": uid
+      },
+      {
+        $set: {
+          "replies.$[reply].username": user.username,
+          "replies.$[reply].profilePicture": user.profilePicture
+        }
+      },
+      {
+        arrayFilters: [{
+          "reply.uid": uid
+        }]
+      }
+    )
 
     user.password = null
     res.status(200).json(user)
